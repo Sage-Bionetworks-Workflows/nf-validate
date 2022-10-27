@@ -1,3 +1,7 @@
 # Nextflow log files
 work/
 .nextflow*
+
+# files for testing
+*.ipynb
+.ipynb_checkpoints
