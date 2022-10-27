@@ -1,22 +1,26 @@
 // Ensure DSL2
 nextflow.enable.dsl = 2
 
-process download_file {
+process SYNAPSE_GET {
+
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
 
     input:
     val params.syn_id
 
     output:
-    // will eventually output synapse ids and locations to carry into
-    // validation step
+    tuple val(params.syn_id), path('*')
 
     script:
     // gets synapse file using cli
     """
-    synapse get $params.syn_id
+    synapse get ${params.syn_id}
+
+    shopt -s nullglob
+    for f in *\\ *; do mv "\${f}" "\${f// /_}"; done
     """
 }
 
 workflow {
-    download_file(params.syn_id)
+    SYNAPSE_GET(params.syn_id)
 }
