@@ -47,14 +47,27 @@ process SYNAPSE_VALIDATE {
     """
 }
 
+process SYNAPSE_VALID_ANNOTATE {
+
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
+
+    input:
+    tuple val(syn_id), path(path), val(valid_status)
+
+    script:
+    """
+    synapse set-annotations --id ${syn_id} --annotations '{"valid": ${valid_status}}'
+    """
+}
+
 workflow {
     // pre-process inputs
     syn_ids = params.syn_ids.tokenize(',')
-    ch_syn_ids = Channel.fromList(syn_ids)
+    ch_syn_ids = Channel.fromList(syn_ids).distinct() // added .distinct() because if you provide duplicate synapse ID's it breaks
     // download file(s)
     SYNAPSE_GET(ch_syn_ids)
     // validate file(s)
     SYNAPSE_VALIDATE(SYNAPSE_GET.output)
-
-    SYNAPSE_VALIDATE.output.view()
+    // annotation file(s)
+    SYNAPSE_VALID_ANNOTATE(SYNAPSE_VALIDATE.output)
 }
