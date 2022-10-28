@@ -41,9 +41,9 @@ process SYNAPSE_VALIDATE {
     with open('${path}') as f:
         text = f.read()
     if text[-1] == '\\n':
-        print('true')
+        print(True)
     else:
-        print('false')
+        print(False)
     """
 }
 
