@@ -56,7 +56,7 @@ process SYNAPSE_VALID_ANNOTATE {
 
     script:
     """
-    synapse set-annotations --id ${syn_id} --annotations '{"valid": ${valid_status}}'
+    synapse set-annotations --id ${syn_id} --annotations '{"DPE.valid": ${valid_status}}'
     """
 }
 
