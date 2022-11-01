@@ -5,7 +5,7 @@ process SYNAPSE_GET {
 
     container "sagebionetworks/synapsepythonclient:v2.7.0"
     
-    secret 'SYNAPSE_AUTH_TOKEN'
+    secret 'SYNAPSE_TOKEN'
 
     input:
     val syn_id
@@ -53,7 +53,7 @@ process SYNAPSE_VALID_ANNOTATE {
 
     container "sagebionetworks/synapsepythonclient:v2.7.0"
 
-    secret 'SYNAPSE_AUTH_TOKEN'
+    secret 'SYNAPSE_TOKEN'
 
     input:
     tuple val(syn_id), path(path), val(valid_status)
