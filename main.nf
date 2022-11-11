@@ -7,7 +7,7 @@ params.csv_path = "data/input.csv"
 //checks metadata, and passes relavent fields along through .json
 process SYNAPSE_CHECK {
 
-    cache 'deep'
+    cache false
         
     container "python:3.10.4"
     
@@ -28,8 +28,6 @@ process SYNAPSE_CHECK {
 
 //downloads synapse file given Synapse ID and version number
 process SYNAPSE_GET {
-
-    cache 'deep'
 
     container "sagebionetworks/synapsepythonclient:v2.7.0"
     

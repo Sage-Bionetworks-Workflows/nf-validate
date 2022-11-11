@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import os
 import sys
+import re
 
 import json
 
@@ -12,9 +12,11 @@ def get_synaspe_file(syn_id: str) -> synapseclient.entity.File:
     """
     Initializes synapseclient session and retrieves file metadata
     """
-    syn = synapseclient.login()
-    syn_file = syn.get(syn_id, downloadFile=False)
-    return syn_file
+    pattern = re.compile("syn[0-9]+")
+    if pattern.search(syn_id):
+        syn = synapseclient.login()
+        syn_file = syn.get(syn_id, downloadFile=False)
+        return syn_file
 
 
 def json_dump(syn_id: str, test_name: str, data: dict):
