@@ -6,6 +6,8 @@ params.csv_path = "data/input.csv"
 
 //checks metadata, and passes relavent fields along through .json
 process SYNAPSE_CHECK {
+
+    cache 'deep'
         
     container "python:3.10.4"
     
@@ -15,7 +17,7 @@ process SYNAPSE_CHECK {
     tuple val(syn_id), val(md5_checksum)
 
     output:
-    tuple val(syn_id), val(md5_checksum), path('*file_entity_test.json')
+    tuple val(syn_id), val(md5_checksum), path('*.json')
 
     script:
     """
@@ -26,6 +28,8 @@ process SYNAPSE_CHECK {
 
 //downloads synapse file given Synapse ID and version number
 process SYNAPSE_GET {
+
+    cache 'deep'
 
     container "sagebionetworks/synapsepythonclient:v2.7.0"
     
@@ -57,7 +61,7 @@ workflow {
         // filter by files only from json
         | map { parseJson(it[2]) } \
         | map { it.input } \
-        | filter { it.type == "org.sagebionetworks.repo.model.FileEntity" } \
+        | filter { it.type == "FileEntity" } \
         // provides input for SYNAPSE_GET
         | map {tuple(it.synapse_id, it.type, it.version_number, it.md5_checksum)} \
         | SYNAPSE_GET
