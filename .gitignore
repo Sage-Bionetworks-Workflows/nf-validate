@@ -5,3 +5,6 @@ work/
 # files for testing
 *.ipynb
 .ipynb_checkpoints
+
+#
+.DS_Store

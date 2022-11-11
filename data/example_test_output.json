@@ -1,0 +1,12 @@
+{
+    "input": {
+        "synapse_id": "syn12345678",
+        "type": "file",
+        "version_number": 3
+    },
+    "test": {
+        "name": "file_entity_test",
+        "status": "pass",
+        "reason": null
+    }
+}
