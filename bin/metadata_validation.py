@@ -10,13 +10,15 @@ import synapseclient
 
 def get_synaspe_file(syn_id: str) -> synapseclient.entity.File:
     """
-    Initializes synapseclient session and retrieves file metadata
+    1. Validates provided Synapse ID against regex pattern
+    2. Initializes synapseclient session and retrieves file metadata
     """
     pattern = re.compile("syn[0-9]+")
-    if pattern.search(syn_id):
-        syn = synapseclient.login()
-        syn_file = syn.get(syn_id, downloadFile=False)
-        return syn_file
+    assert pattern.search(syn_id), f"{syn_id} is an invalid Synapse ID"
+
+    syn = synapseclient.login()
+    syn_file = syn.get(syn_id, downloadFile=False)
+    return syn_file
 
 
 def json_dump(syn_id: str, test_name: str, data: dict):
