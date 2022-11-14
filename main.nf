@@ -1,6 +1,32 @@
 // Ensure DSL2
 nextflow.enable.dsl = 2
 
+//path to exmaple csv
+params.csv_path = "data/input.csv"
+
+//checks metadata, and passes relavent fields along through .json
+process SYNAPSE_CHECK {
+
+    cache false
+        
+    container "python:3.10.4"
+    
+    secret 'SYNAPSE_AUTH_TOKEN'
+
+    input:
+    tuple val(syn_id), val(md5_checksum)
+
+    output:
+    tuple val(syn_id), val(md5_checksum), path('*.json')
+
+    script:
+    """
+    metadata_validation.py '${syn_id}' '${md5_checksum}'
+    """
+
+}
+
+//downloads synapse file given Synapse ID and version number
 process SYNAPSE_GET {
 
     container "sagebionetworks/synapsepythonclient:v2.7.0"
@@ -8,70 +34,40 @@ process SYNAPSE_GET {
     secret 'SYNAPSE_AUTH_TOKEN'
 
     input:
-    val syn_id
+    tuple val(syn_id), val(type), val(version), val(md5_checksum)
 
     output:
-    tuple val(syn_id), path('*')
+    tuple val(syn_id), val(md5_checksum), path('*')
 
     script:
-    // gets synapse file using cli
-    """
-    synapse get ${syn_id}
+    """    
+    synapse get ${syn_id} --version ${version}
 
     shopt -s nullglob
     for f in *\\ *; do mv "\${f}" "\${f// /_}"; done
     """
 }
 
-process SYNAPSE_VALIDATE {
-
-    container "python:3.10.4"
-
-    input:
-    tuple val(syn_id), path(path)
-
-    output:
-    tuple val(syn_id), path(path), stdout
-    // tuple val(syn_id), path(path), emit: file
-    // stdout emit: status
-
-    script:
-    // validates file
-    """
-    #!/usr/bin/env python3
-    
-    with open('${path}') as f:
-        text = f.read()
-    if text[-1] == '\\n':
-        print('true')
-    else:
-        print('false')
-    """
-}
-
-process SYNAPSE_VALID_ANNOTATE {
-
-    container "sagebionetworks/synapsepythonclient:v2.7.0"
-
-    secret 'SYNAPSE_AUTH_TOKEN'
-
-    input:
-    tuple val(syn_id), path(path), val(valid_status)
-
-    script:
-    """
-    synapse set-annotations --id ${syn_id} --annotations '{"dpe.valid": ${valid_status}}'
-    """
-}
 
 workflow {
-    // pre-process inputs
-    syn_ids = params.syn_ids.tokenize(',')
-    ch_syn_ids = Channel.fromList(syn_ids).distinct() // added .distinct() because if you provide duplicate synapse ID's it breaks
-    // download file(s)
-    SYNAPSE_GET(ch_syn_ids)
-    // validate file(s)
-    SYNAPSE_VALIDATE(SYNAPSE_GET.output)
-    // annotation file(s)
-    SYNAPSE_VALID_ANNOTATE(SYNAPSE_VALIDATE.output)
+    //Channel from csv rows
+    Channel.fromPath(params.csv_path) \
+    | splitCsv(header:true) \
+    | map { row -> tuple(row.synapse_id, row.md5_checksum) } \
+    // metadata validation
+    | SYNAPSE_CHECK \
+        // filter by files only from json
+        | map { parseJson(it[2]) } \
+        | map { it.input } \
+        | filter { it.type == "FileEntity" } \
+        // provides input for SYNAPSE_GET
+        | map {tuple(it.synapse_id, it.type, it.version_number, it.md5_checksum)} \
+        | SYNAPSE_GET
+}
+
+// Utility Functions
+
+def parseJson(file) {
+    def parser = new groovy.json.JsonSlurper()
+    return parser.parseText(file.text)
 }
