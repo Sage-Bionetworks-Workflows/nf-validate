@@ -14,7 +14,8 @@ def get_synaspe_file(syn_id: str) -> synapseclient.entity.File:
     2. Initializes synapseclient session and retrieves file metadata
     """
     pattern = re.compile("syn[0-9]+")
-    assert pattern.search(syn_id), f"{syn_id} is an invalid Synapse ID"
+    if not pattern.search(syn_id):
+        raise ValueError(f"{syn_id} is an invalid Synapse ID")
 
     syn = synapseclient.login()
     syn_file = syn.get(syn_id, downloadFile=False)
