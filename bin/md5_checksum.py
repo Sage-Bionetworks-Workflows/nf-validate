@@ -6,7 +6,7 @@ import hashlib
 from reusable import json_dump, package_validation_dict
 
 
-def md5_checksum_test(file_path: str):
+def md5_checksum_test(file_path: str) -> str:
     """
     1. Opens the downloaded file and calculates MD5 Checksum from file contents
     2. Compares calculated MD5 Checksum to the one provided in the original input csv file
