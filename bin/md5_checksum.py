@@ -3,7 +3,7 @@
 import sys
 import hashlib
 
-from reusable import json_dump, package_validation_dict
+from utils import json_dump, package_validation_dict
 
 
 def md5_checksum_test(file_path: str) -> str:
@@ -35,11 +35,11 @@ if __name__ == '__main__':
     file_path = sys.argv[5]
     md5_status = md5_checksum_test(file_path)
     md5_check_data = package_validation_dict(
-        syn_id,
-        entity_type,
-        version_number,
-        md5_input,
-        md5_status,
-        "md5_checksum_test"
+    syn_id=syn_id, 
+    entity_type=entity_type, 
+    version_number=version_number, 
+    md5_input=md5_input, 
+    validation_status=md5_status,
+    test_name="md5_checksum_test"
     )
     json_dump(syn_id, "md5_checksum_test", md5_check_data)

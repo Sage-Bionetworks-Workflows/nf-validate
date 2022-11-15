@@ -2,14 +2,13 @@
 
 import sys
 
-from reusable import json_dump, package_validation_dict
+from utils import json_dump, package_validation_dict
 
 
 def file_extension_test(file_path: str) -> str:
     """
     1. Reads file extension from provided path
     2. Checks for valid file extension (.txt is used for now, future version will use ome.tiff and ome.tif)
-    3. Returns result of File extension test ("pass" or "fail")
 
     Args:
         file_path (str): Path to the downloaded file
@@ -33,11 +32,11 @@ if __name__ == '__main__':
     file_path = sys.argv[5]
     file_ext_status = file_extension_test(file_path)
     file_extension_check_data = package_validation_dict(
-        syn_id,
-        entity_type,
-        version_number,
-        md5_input,
-        file_ext_status,
-        "file_extension_test"
+    syn_id=syn_id, 
+    entity_type=entity_type, 
+    version_number=version_number, 
+    md5_input=md5_input, 
+    validation_status=file_ext_status,
+    test_name="file_extension_test"
     )
     json_dump(syn_id, "file_extension_test", file_extension_check_data)
