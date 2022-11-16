@@ -34,14 +34,14 @@ process SYNAPSE_GET {
     secret 'SYNAPSE_AUTH_TOKEN'
 
     input:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum)
+    val(meta)
 
     output:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum), path('*')
+    tuple val(meta), path('*')
 
     script:
     """    
-    synapse get ${syn_id} --version ${version}
+    synapse get ${meta.synapse_id} --version ${meta.version_number}
 
     shopt -s nullglob
     for f in *\\ *; do mv "\${f}" "\${f// /_}"; done
@@ -55,14 +55,14 @@ process MD5_VALIDATE {
     container "python:3.10.4"
 
     input:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum), path(path)
+    tuple val(meta), path(path)
     
     output:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum), path(path)
+    tuple val(meta), path(path)
 
     script:
     """
-    md5_checksum.py '${syn_id}' '${type}' '${version}' '${md5_checksum}' '${path}'
+    md5_checksum.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}'
     """
 
 }
@@ -73,14 +73,14 @@ process FILE_EXT_VALIDATE {
     container "python:3.10.4"
 
     input:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum), path(path)
+    tuple val(meta), path(path)
     
     output:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum), path(path)
+    tuple val(meta), path(path)
 
     script:
     """
-    file_extension.py '${syn_id}' '${type}' '${version}' '${md5_checksum}' '${path}'
+    file_extension.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}'
     """
 
 }
@@ -97,8 +97,6 @@ workflow {
         | map { parseJson(it[2]) } \
         | map { it.input } \
         | filter { it.type == "FileEntity" } \
-        // provides input for SYNAPSE_GET
-        | map {tuple(it.synapse_id, it.type, it.version_number, it.md5_checksum)} \
         | SYNAPSE_GET \
         | MD5_VALIDATE \
         | FILE_EXT_VALIDATE
