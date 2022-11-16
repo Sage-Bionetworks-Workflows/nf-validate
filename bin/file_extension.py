@@ -22,7 +22,7 @@ def file_extension_test(file_path: str) -> str:
     return file_ext_status
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     syn_id = sys.argv[1]
     entity_type = sys.argv[2]
     version_number = sys.argv[3]
@@ -30,11 +30,11 @@ if __name__ == '__main__':
     file_path = sys.argv[5]
     file_ext_status = file_extension_test(file_path)
     file_extension_check_data = package_validation_dict(
-    syn_id=syn_id, 
-    entity_type=entity_type, 
-    version_number=version_number, 
-    md5_input=md5_input, 
-    validation_status=file_ext_status,
-    test_name="file_extension_test"
+        syn_id=syn_id,
+        entity_type=entity_type,
+        version_number=version_number,
+        md5_input=md5_input,
+        validation_status=file_ext_status,
+        test_name="file_extension_test",
     )
     json_dump(syn_id, "file_extension_test", file_extension_check_data)

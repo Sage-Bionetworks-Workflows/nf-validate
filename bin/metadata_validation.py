@@ -36,7 +36,7 @@ def execute_file_entity_test(syn_file: synapseclient.entity.File):
 
     Args:
         syn_file (synapseclient.entity.File): Synapse file entity
-    
+
     Returns:
         entity_type (str): Entity type collected from the Synapse file metadata
         file_entity_status (str): Result of the File Entity Test
@@ -49,17 +49,17 @@ def execute_file_entity_test(syn_file: synapseclient.entity.File):
     return entity_type, file_entity_status
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     syn_id = sys.argv[1]
     md5_checksum = sys.argv[2]
     syn_file = get_synapse_file(syn_id)
     entity_type, file_entity_status = execute_file_entity_test(syn_file)
     file_entity_data = package_validation_dict(
-        syn_id=syn_id, 
-        entity_type=entity_type, 
-        version_number=syn_file.properties.get("versionNumber"), 
-        md5_input=md5_checksum, 
+        syn_id=syn_id,
+        entity_type=entity_type,
+        version_number=syn_file.properties.get("versionNumber"),
+        md5_input=md5_checksum,
         validation_status=file_entity_status,
-        test_name="file_entity_test"
-        )
+        test_name="file_entity_test",
+    )
     json_dump(syn_id, "file_entity_test", file_entity_data)
