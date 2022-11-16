@@ -18,9 +18,11 @@ def md5_checksum_test(file_path: str) -> str:
     Returns:
         str: Result of MD5 Checksum test
     """
-    with open(file_path, "rb") as file_to_check:
-        data = file_to_check.read()
-        md5_generated = hashlib.md5(data).hexdigest()
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    md5_generated = hash_md5.hexdigest()
 
     md5_test = md5_generated == md5_input
     md5_status = "pass" if md5_test else "fail"
