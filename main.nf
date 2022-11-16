@@ -96,14 +96,46 @@ process SHOWINF_VALIDATE {
     output:
     tuple val(meta), path(path)
 
-    script:
-    """    
-    if showinf -nopix -novalid -nocore ${path} ; then
-        showinf.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}' 'pass'
+    shell:
+    '''    
+    if showinf -nopix -novalid -nocore !{path} ; then
+        showinf_status="pass"
     else
-        showinf.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}' 'fail'
+        showinf_status="fail"
     fi
-    """
+
+    bioformats.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
+
+    '''
+
+}
+
+
+process XMLVALID_VALIDATE {
+
+    debug true
+
+    container "python:3.10.4"
+
+    input:
+    tuple val(meta), path(path)
+    
+    output:
+    tuple val(meta), path(path)
+
+    shell:
+    '''
+    string="\$(xmlvalid !{path})"
+
+    if [[ ${string} == *"No validation errors found."* ]] ; then
+        xmlvalid_status="pass"
+    else
+        xmlvalid_status="fail"
+    fi
+
+    bioformats.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${xmlvalid_status} 'xmlvalid_test'
+
+    ''' 
 
 }
 
@@ -121,7 +153,8 @@ workflow {
         | SYNAPSE_GET \
         | MD5_VALIDATE \
         | FILE_EXT_VALIDATE \
-        | SHOWINF_VALIDATE 
+        | SHOWINF_VALIDATE \
+        | XMLVALID_VALIDATE
 }
 
 // Utility Functions
