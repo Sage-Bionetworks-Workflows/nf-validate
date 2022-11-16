@@ -16,10 +16,8 @@ def file_extension_test(file_path: str) -> str:
     Returns:
         str: Result of File extension test
     """
-    ext = file_path.split(".", 1)[-1]
-    # Do we want the extension check to be hard-coded like this or check against the file type data provided in the CSV?
-    # We are not using that column of the CSV at the moment.
-    file_ext_test = (ext == "ome.tiff" or ext == "ome.tif") 
+    # hard-coded extension check for now, will introduce mapping when we have at least 2 file types to check
+    file_ext_test = file_path.endswith(("ome.tiff", "ome.tif"))
     file_ext_status = "pass" if file_ext_test else "fail"
     return file_ext_status
 

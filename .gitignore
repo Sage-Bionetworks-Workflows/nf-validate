@@ -6,5 +6,8 @@ work/
 *.ipynb
 .ipynb_checkpoints
 
+#cache
+__pycache__/
+
 #
 .DS_Store
