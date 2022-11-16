@@ -8,7 +8,7 @@ from utils import json_dump, package_validation_dict
 def file_extension_test(file_path: str) -> str:
     """
     1. Reads file extension from provided path
-    2. Checks for valid file extension (.txt is used for now, future version will use ome.tiff and ome.tif)
+    2. Checks for valid file extension
 
     Args:
         file_path (str): Path to the downloaded file
@@ -16,6 +16,7 @@ def file_extension_test(file_path: str) -> str:
     Returns:
         str: Result of File extension test
     """
+    # TODO
     # hard-coded extension check for now, will introduce mapping when we have at least 2 file types to check
     file_ext_test = file_path.endswith(("ome.tiff", "ome.tif"))
     file_ext_status = "pass" if file_ext_test else "fail"
