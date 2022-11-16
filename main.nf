@@ -67,7 +67,7 @@ process MD5_VALIDATE {
 
 }
 
-// checks if the downloaded Synaspe file extension is either 'ome.tiff' or 'ome.tif'
+// checks if the downloaded Synapse file extension is either 'ome.tiff' or 'ome.tif'
 process FILE_EXT_VALIDATE {
 
     container "python:3.10.4"
@@ -85,6 +85,27 @@ process FILE_EXT_VALIDATE {
 
 }
 
+// checks if Bio-Formats can inspect the file with showinf
+process SHOWINF_VALIDATE {
+
+    container "python:3.10.4"
+
+    input:
+    tuple val(meta), path(path)
+    
+    output:
+    tuple val(meta), path(path)
+
+    script:
+    """    
+    if showinf -nopix -novalid -nocore ${path} ; then
+        showinf.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}' 'pass'
+    else
+        showinf.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}' 'fail'
+    fi
+    """
+
+}
 
 workflow {
     //Channel from csv rows
@@ -99,7 +120,8 @@ workflow {
         | filter { it.type == "FileEntity" } \
         | SYNAPSE_GET \
         | MD5_VALIDATE \
-        | FILE_EXT_VALIDATE
+        | FILE_EXT_VALIDATE \
+        | SHOWINF_VALIDATE 
 }
 
 // Utility Functions
