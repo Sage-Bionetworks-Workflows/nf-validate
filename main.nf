@@ -2,14 +2,14 @@
 nextflow.enable.dsl = 2
 
 //path to exmaple csv
-params.csv_path = "data/input.csv"
+params.input = "$projectDir/data/input_ome.csv"
 
 //checks metadata, and passes relavent fields along through .json
 process SYNAPSE_CHECK {
 
     cache false
         
-    container "python:3.10.4"
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
     
     secret 'SYNAPSE_AUTH_TOKEN'
 
@@ -34,24 +34,61 @@ process SYNAPSE_GET {
     secret 'SYNAPSE_AUTH_TOKEN'
 
     input:
-    tuple val(syn_id), val(type), val(version), val(md5_checksum)
+    val(meta)
 
     output:
-    tuple val(syn_id), val(md5_checksum), path('*')
+    tuple val(meta), path('*')
 
     script:
     """    
-    synapse get ${syn_id} --version ${version}
+    synapse get ${meta.synapse_id} --version ${meta.version_number}
 
     shopt -s nullglob
     for f in *\\ *; do mv "\${f}" "\${f// /_}"; done
     """
 }
 
+// calculates MD5 Checksum from contents of downloaded Synapse file and checks it against
+// the one provided in the input CSV file
+process MD5_VALIDATE {
+
+    container "python:3.10.4"
+
+    input:
+    tuple val(meta), path(path)
+    
+    output:
+    tuple val(meta), path(path)
+
+    script:
+    """
+    md5_checksum.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}'
+    """
+
+}
+
+// checks if the downloaded Synaspe file extension is either 'ome.tiff' or 'ome.tif'
+process FILE_EXT_VALIDATE {
+
+    container "python:3.10.4"
+
+    input:
+    tuple val(meta), path(path)
+    
+    output:
+    tuple val(meta), path(path)
+
+    script:
+    """
+    file_extension.py '${meta.synapse_id}' '${meta.type}' '${meta.version_number}' '${meta.md5_checksum}' '${path}'
+    """
+
+}
+
 
 workflow {
     //Channel from csv rows
-    Channel.fromPath(params.csv_path) \
+    Channel.fromPath(params.input) \
     | splitCsv(header:true) \
     | map { row -> tuple(row.synapse_id, row.md5_checksum) } \
     // metadata validation
@@ -60,9 +97,9 @@ workflow {
         | map { parseJson(it[2]) } \
         | map { it.input } \
         | filter { it.type == "FileEntity" } \
-        // provides input for SYNAPSE_GET
-        | map {tuple(it.synapse_id, it.type, it.version_number, it.md5_checksum)} \
-        | SYNAPSE_GET
+        | SYNAPSE_GET \
+        | MD5_VALIDATE \
+        | FILE_EXT_VALIDATE
 }
 
 // Utility Functions
