@@ -2,14 +2,14 @@
 nextflow.enable.dsl = 2
 
 //path to exmaple csv
-params.csv_path = "data/input_ome.csv"
+params.input = "$projectDir/data/input_ome.csv"
 
 //checks metadata, and passes relavent fields along through .json
 process SYNAPSE_CHECK {
 
     cache false
         
-    container "python:3.10.4"
+    container "sagebionetworks/synapsepythonclient:v2.7.0"
     
     secret 'SYNAPSE_AUTH_TOKEN'
 
@@ -88,7 +88,7 @@ process FILE_EXT_VALIDATE {
 
 workflow {
     //Channel from csv rows
-    Channel.fromPath(params.csv_path) \
+    Channel.fromPath(params.input) \
     | splitCsv(header:true) \
     | map { row -> tuple(row.synapse_id, row.md5_checksum) } \
     // metadata validation
