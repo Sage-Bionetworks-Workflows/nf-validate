@@ -88,7 +88,7 @@ process FILE_EXT_VALIDATE {
 // checks if Bio-Formats can inspect the file with showinf
 process SHOWINF_VALIDATE {
 
-    container "python:3.10.4"
+    container "openmicroscopy/bftools"
 
     input:
     tuple val(meta), path(path)
@@ -113,9 +113,7 @@ process SHOWINF_VALIDATE {
 
 process XMLVALID_VALIDATE {
 
-    debug true
-
-    container "python:3.10.4"
+    container "openmicroscopy/bftools"
 
     input:
     tuple val(meta), path(path)
@@ -125,8 +123,14 @@ process XMLVALID_VALIDATE {
 
     shell:
     '''
-    string="\$(xmlvalid !{path})"
+    #check if xmlvalid can run, if so save string, if not create string that will result in failed test
+    if xmlvalid !{path} ; then
+        string="\$(xmlvalid !{path})"
+    else
+        string="command failed"
+    fi
 
+    #check string for substring which indicates successful test, create xmlvalid_status variable with result of test
     if [[ ${string} == *"No validation errors found."* ]] ; then
         xmlvalid_status="pass"
     else
@@ -134,7 +138,6 @@ process XMLVALID_VALIDATE {
     fi
 
     bioformats.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${xmlvalid_status} 'xmlvalid_test'
-
     ''' 
 
 }
