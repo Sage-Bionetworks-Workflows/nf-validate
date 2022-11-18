@@ -104,8 +104,7 @@ process SHOWINF_VALIDATE {
         showinf_status="fail"
     fi
 
-    bioformats.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
-
+    package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
     '''
 
 }
@@ -137,7 +136,7 @@ process XMLVALID_VALIDATE {
         xmlvalid_status="fail"
     fi
 
-    bioformats.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${xmlvalid_status} 'xmlvalid_test'
+    package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${xmlvalid_status} 'xmlvalid_test'
     ''' 
 
 }
