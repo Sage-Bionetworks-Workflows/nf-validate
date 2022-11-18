@@ -10,4 +10,9 @@ work/
 __pycache__/
 
 #
-.DS_Store
+*.DS_Store
+
+#example files
+*.ome.tiff
+*.ome.tif
+*.txt

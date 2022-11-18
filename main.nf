@@ -67,7 +67,7 @@ process MD5_VALIDATE {
 
 }
 
-// checks if the downloaded Synaspe file extension is either 'ome.tiff' or 'ome.tif'
+// checks if the downloaded Synapse file extension is either 'ome.tiff' or 'ome.tif'
 process FILE_EXT_VALIDATE {
 
     container "python:3.10.4"
@@ -85,6 +85,61 @@ process FILE_EXT_VALIDATE {
 
 }
 
+// checks if Bio-Formats can inspect the file with showinf
+process SHOWINF_VALIDATE {
+
+    container "openmicroscopy/bftools"
+
+    input:
+    tuple val(meta), path(path)
+    
+    output:
+    tuple val(meta), path(path)
+
+    shell:
+    '''    
+    if showinf -nopix -novalid -nocore !{path} ; then
+        showinf_status="pass"
+    else
+        showinf_status="fail"
+    fi
+
+    package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
+    '''
+
+}
+
+// checks for valid xml data
+process XMLVALID_VALIDATE {
+
+    container "openmicroscopy/bftools"
+
+    input:
+    tuple val(meta), path(path)
+    
+    output:
+    tuple val(meta), path(path)
+
+    shell:
+    '''
+    #check if xmlvalid can run, if so save string, if not create string that will result in failed test
+    if xmlvalid !{path} ; then
+        string="\$(xmlvalid !{path})"
+    else
+        string="command failed"
+    fi
+
+    #check string for substring which indicates successful test, create xmlvalid_status variable with result of test
+    if [[ ${string} == *"No validation errors found."* ]] ; then
+        xmlvalid_status="pass"
+    else
+        xmlvalid_status="fail"
+    fi
+
+    package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${xmlvalid_status} 'xmlvalid_test'
+    ''' 
+
+}
 
 workflow {
     //Channel from csv rows
@@ -99,7 +154,9 @@ workflow {
         | filter { it.type == "FileEntity" } \
         | SYNAPSE_GET \
         | MD5_VALIDATE \
-        | FILE_EXT_VALIDATE
+        | FILE_EXT_VALIDATE \
+        | SHOWINF_VALIDATE \
+        | XMLVALID_VALIDATE
 }
 
 // Utility Functions
