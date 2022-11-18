@@ -110,7 +110,7 @@ process SHOWINF_VALIDATE {
 
 }
 
-
+// checks for valid xml data
 process XMLVALID_VALIDATE {
 
     container "openmicroscopy/bftools"
