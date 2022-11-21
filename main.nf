@@ -58,7 +58,7 @@ process MD5_VALIDATE {
     tuple val(meta), path(path)
     
     output:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path('*.json')
 
     script:
     """
@@ -73,10 +73,10 @@ process FILE_EXT_VALIDATE {
     container "python:3.10.4"
 
     input:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path(prev_json)
     
     output:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path('*.json')
 
     script:
     """
@@ -91,10 +91,10 @@ process SHOWINF_VALIDATE {
     container "openmicroscopy/bftools"
 
     input:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path(prev_json)
     
     output:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path('*.json')
 
     shell:
     '''    
@@ -112,13 +112,15 @@ process SHOWINF_VALIDATE {
 // checks for valid xml data
 process XMLVALID_VALIDATE {
 
+    debug true
+
     container "openmicroscopy/bftools"
 
     input:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path(prev_json)
     
     output:
-    tuple val(meta), path(path)
+    tuple val(meta), path(path), path('*.json')
 
     shell:
     '''
@@ -141,6 +143,25 @@ process XMLVALID_VALIDATE {
 
 }
 
+// aggregates output data and exports output csv
+process CSV_OUTPUT {
+
+    debug true
+
+    container "python:3.10.4"
+
+    input:
+    val(collection)
+    
+    // output:
+    // tuple val(meta), path(path), path('*.json')
+
+    script:
+    """
+    csv_output.py '${collection}' '${params.input}'
+    """
+}
+
 workflow {
     //Channel from csv rows
     Channel.fromPath(params.input) \
@@ -156,7 +177,11 @@ workflow {
         | MD5_VALIDATE \
         | FILE_EXT_VALIDATE \
         | SHOWINF_VALIDATE \
-        | XMLVALID_VALIDATE
+        | XMLVALID_VALIDATE \
+            | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
+            | collect \
+            | CSV_OUTPUT
+
 }
 
 // Utility Functions
