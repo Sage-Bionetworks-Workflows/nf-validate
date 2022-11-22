@@ -43,11 +43,11 @@ def generate_output_dict(input: str) -> dict:
                         "file_type": row["file_type"],
                         "md5_checksum": row["md5_checksum"],
                         "version_number": "",
-                        "required_tests": "",  # placeholder for ome.tiff until we have required_tests from input
+                        "required_tests": [],  # placeholder for ome.tiff until we have required_tests from input
                         "is_valid": "",
-                        "passed_tests": "",
-                        "failed_tests": "",
-                        "skipped_tests": "",
+                        "passed_tests": [],
+                        "failed_tests": [],
+                        "skipped_tests": "",  # placeholder for future version with skipping
                     }
                 }
             )
@@ -74,13 +74,13 @@ def update_output_dict(final_list: list, output_dict: dict) -> dict:
             test_name = data["test"]["name"]
             # set version number in output_dict
             output_dict[syn_id]["version_number"] = data["input"]["version_number"]
-            # add tests to required_tests
-            output_dict[syn_id]["required_tests"] += test_name + ";"
+            # append to required_tests
+            output_dict[syn_id]["required_tests"].append(test_name)
             # add tests to passed_tests or failed_tests
             if data["test"]["status"] == "pass":
-                output_dict[syn_id]["passed_tests"] += test_name + ";"
+                output_dict[syn_id]["passed_tests"].append(test_name)
             else:
-                output_dict[syn_id]["failed_tests"] += test_name + ";"
+                output_dict[syn_id]["failed_tests"].append(test_name)
             # set is_valid
             if (
                 output_dict[syn_id]["passed_tests"]
@@ -89,6 +89,18 @@ def update_output_dict(final_list: list, output_dict: dict) -> dict:
                 output_dict[syn_id]["is_valid"] = True
             else:
                 output_dict[syn_id]["is_valid"] = False
+    # join test lists
+    for k in output_dict:
+        output_dict[k]["required_tests"] = ";".join(
+            sorted(output_dict[k]["required_tests"])
+        )
+        output_dict[k]["passed_tests"] = ";".join(
+            sorted(output_dict[k]["passed_tests"])
+        )
+        output_dict[k]["failed_tests"] = ";".join(
+            sorted(output_dict[k]["failed_tests"])
+        )
+
     return output_dict
 
 
