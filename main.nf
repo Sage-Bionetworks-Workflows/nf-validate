@@ -3,6 +3,8 @@ nextflow.enable.dsl = 2
 
 //path to exmaple csv
 params.input = "$projectDir/data/input_ome.csv"
+//parents synapse folder for output csv file upload
+params.parent_folder = "syn45704314"
 
 //checks metadata, and passes relavent fields along through .json
 process SYNAPSE_CHECK {
@@ -97,13 +99,13 @@ process SHOWINF_VALIDATE {
     tuple val(meta), path(path), path('*.json')
 
     shell:
-    '''    
+    '''
     if showinf -nopix -novalid -nocore !{path} ; then
         showinf_status="pass"
     else
         showinf_status="fail"
     fi
-
+    
     package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
     '''
 
@@ -111,8 +113,6 @@ process SHOWINF_VALIDATE {
 
 // checks for valid xml data
 process XMLVALID_VALIDATE {
-
-    debug true
 
     container "openmicroscopy/bftools"
 
@@ -151,15 +151,32 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    val(collection)
-    
-    // output:
-    // tuple val(meta), path(path), path('*.json')
+    val(json_list)
+
+    output:
+    path("*.csv")
 
     script:
     """
-    csv_output.py '${collection}' '${params.input}'
+    csv_output.py '${json_list}' '${params.input}'
     """
+}
+
+// uploads csv file to Synapse
+process SYNAPSE_STORE {
+
+  container "sagebionetworks/synapsepythonclient:v2.6.0"
+
+  secret "SYNAPSE_AUTH_TOKEN"
+
+  input:
+  path(validation_results)
+
+  script:
+  """
+  synapse store --parentId ${params.parent_folder} ${validation_results}
+  """
+
 }
 
 workflow {
@@ -179,8 +196,10 @@ workflow {
         | SHOWINF_VALIDATE \
         | XMLVALID_VALIDATE \
             | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
+            | map { it[2] }
             | collect \
             | CSV_OUTPUT
+            | SYNAPSE_STORE
 
 }
 
