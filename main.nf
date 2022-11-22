@@ -90,7 +90,7 @@ process FILE_EXT_VALIDATE {
 // checks if Bio-Formats can inspect the file with showinf
 process SHOWINF_VALIDATE {
 
-    container "openmicroscopy/bftools"
+    container "openmicroscopy/bftools:latest"
 
     input:
     tuple val(meta), path(path), path(prev_json)
@@ -114,7 +114,7 @@ process SHOWINF_VALIDATE {
 // checks for valid xml data
 process XMLVALID_VALIDATE {
 
-    container "openmicroscopy/bftools"
+    container "openmicroscopy/bftools:latest"
 
     input:
     tuple val(meta), path(path), path(prev_json)
