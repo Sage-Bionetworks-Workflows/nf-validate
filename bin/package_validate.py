@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import sys
 
@@ -20,7 +20,6 @@ if __name__ == "__main__":
     file_path = sys.argv[5]
     test_result = sys.argv[6]
     test_name = sys.argv[7]
-    print(test_name)
     check_data = package_validation_dict(
         syn_id=syn_id,
         entity_type=entity_type,

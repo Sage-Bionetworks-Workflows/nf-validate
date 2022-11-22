@@ -100,12 +100,14 @@ process SHOWINF_VALIDATE {
 
     shell:
     '''
+    export PATH="/opt/bftools:$PATH"
+    
     if showinf -nopix -novalid -nocore !{path} ; then
         showinf_status="pass"
     else
         showinf_status="fail"
     fi
-    
+
     package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
     '''
 
@@ -124,6 +126,8 @@ process XMLVALID_VALIDATE {
 
     shell:
     '''
+    export PATH="/opt/bftools:$PATH"
+
     #check if xmlvalid can run, if so save string, if not create string that will result in failed test
     if xmlvalid !{path} ; then
         string="\$(xmlvalid !{path})"
