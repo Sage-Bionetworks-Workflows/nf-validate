@@ -193,6 +193,8 @@ workflow {
         | SYNAPSE_GET \
         | MD5_VALIDATE \
         | FILE_EXT_VALIDATE \
+        | SHOWINF_VALIDATE \
+        | XMLVALID_VALIDATE \
             | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
             | map { it[2] }
             | collect \
