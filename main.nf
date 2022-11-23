@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 
 //path to exmaple csv
-params.input = "$projectDir/data/input_ome.csv"
+params.input = "data/input_ome.csv"
 //parents synapse folder for output csv file upload
 params.parent_folder = "syn45704314"
 
