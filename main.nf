@@ -44,7 +44,6 @@ process SYNAPSE_GET {
     script:
     """    
     synapse get ${meta.synapse_id} --version ${meta.version_number}
-
     shopt -s nullglob
     for f in *\\ *; do mv "\${f}" "\${f// /_}"; done
     """
@@ -107,7 +106,6 @@ process SHOWINF_VALIDATE {
     else
         showinf_status="fail"
     fi
-
     package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${showinf_status} 'bioformats_info_test'
     '''
 
@@ -127,21 +125,18 @@ process XMLVALID_VALIDATE {
     shell:
     '''
     export PATH="/opt/bftools:$PATH"
-
     #check if xmlvalid can run, if so save string, if not create string that will result in failed test
     if xmlvalid !{path} ; then
         string="\$(xmlvalid !{path})"
     else
         string="command failed"
     fi
-
     #check string for substring which indicates successful test, create xmlvalid_status variable with result of test
     if [[ ${string} == *"No validation errors found."* ]] ; then
         xmlvalid_status="pass"
     else
         xmlvalid_status="fail"
     fi
-
     package_validate.py '!{meta.synapse_id}' '!{meta.type}' '!{meta.version_number}' '!{meta.md5_checksum}' '!{path}' ${xmlvalid_status} 'xmlvalid_test'
     ''' 
 
@@ -155,14 +150,14 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    tuple val(json_list) val(input)
+    val(json_list)
 
     output:
     path("*.csv")
 
     script:
     """
-    csv_output.py '${json_list}' '${input}'
+    csv_output.py '${json_list}' '${params.input}'
     """
 }
 
@@ -187,8 +182,7 @@ workflow {
     //Channel from csv rows
     Channel.fromPath(params.input) \
     | splitCsv(header:true) \
-    | map { row -> tuple(row.synapse_id, row.md5_checksum, params.input) } \
-    | view
+    | map { row -> tuple(row.synapse_id, row.md5_checksum) } \
     // metadata validation
     | SYNAPSE_CHECK \
         // filter by files only from json
@@ -203,7 +197,6 @@ workflow {
             | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
             | map { it[2] }
             | collect \
-            | map { tuple(it, params.input) }
             | CSV_OUTPUT
             | SYNAPSE_STORE
 
