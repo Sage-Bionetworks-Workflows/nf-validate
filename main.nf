@@ -155,7 +155,7 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    tuple val(json_list) path(input)
+    tuple val(json_list) val(input)
 
     output:
     path("*.csv")
