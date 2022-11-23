@@ -155,14 +155,14 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    val(json_list)
+    tuple val(json_list) path(input)
 
     output:
     path("*.csv")
 
     script:
     """
-    csv_output.py '${json_list}' '${params.input}'
+    csv_output.py '${json_list}' '${input}'
     """
 }
 
@@ -187,7 +187,8 @@ workflow {
     //Channel from csv rows
     Channel.fromPath(params.input) \
     | splitCsv(header:true) \
-    | map { row -> tuple(row.synapse_id, row.md5_checksum) } \
+    | map { row -> tuple(row.synapse_id, row.md5_checksum, params.input) } \
+    | view
     // metadata validation
     | SYNAPSE_CHECK \
         // filter by files only from json
@@ -202,6 +203,7 @@ workflow {
             | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
             | map { it[2] }
             | collect \
+            | map { tuple(it, params.input) }
             | CSV_OUTPUT
             | SYNAPSE_STORE
 
