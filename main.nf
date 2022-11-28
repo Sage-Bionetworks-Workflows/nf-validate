@@ -2,7 +2,7 @@
 nextflow.enable.dsl = 2
 
 //path to exmaple csv
-params.input = "$projectDir/data/input_ome.csv"
+params.input = "${projectDir}/data/input_ome.csv"
 //parents synapse folder for output csv file upload
 params.parent_folder = "syn45704314"
 
@@ -150,14 +150,14 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    val(json_list)
+    tuple path(json_list), path(input)
 
     output:
     path("*.csv")
 
     script:
     """
-    csv_output.py '${json_list}' '${params.input}'
+    csv_output.py *.csv *.json
     """
 }
 
@@ -194,9 +194,10 @@ workflow {
         | FILE_EXT_VALIDATE \
         | SHOWINF_VALIDATE \
         | XMLVALID_VALIDATE \
-            | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
-            | map { it[2] }
+            | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out ) \
+            | map { it[2] } \
             | collect \
+            | map { tuple(it, params.input) } \
             | CSV_OUTPUT
             | SYNAPSE_STORE
 
