@@ -150,14 +150,14 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    tuple path(json_list), val(input)
+    tuple path(json_list), path(input)
 
     output:
     path("*.csv")
 
     script:
     """
-    csv_output.py '${input}' *.json
+    csv_output.py *.csv *.json
     """
 }
 
@@ -199,7 +199,8 @@ workflow {
             | collect \
             | map { tuple(it, params.input) } \
             | CSV_OUTPUT
-            | SYNAPSE_STORE
+            | view
+            // | SYNAPSE_STORE
 
 }
 
