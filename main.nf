@@ -150,14 +150,14 @@ process CSV_OUTPUT {
     container "python:3.10.4"
 
     input:
-    tuple val(json_list), path(input)
+    tuple path(json_list), val(input)
 
     output:
     path("*.csv")
 
     script:
     """
-    csv_output.py '${json_list}' '${input}'
+    csv_output.py '${input}' *.json
     """
 }
 
@@ -194,10 +194,10 @@ workflow {
         | FILE_EXT_VALIDATE \
         | SHOWINF_VALIDATE \
         | XMLVALID_VALIDATE \
-            | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out, XMLVALID_VALIDATE.out ) \
-            | map { it[2] }
+            | mix( SYNAPSE_CHECK.out, MD5_VALIDATE.out, FILE_EXT_VALIDATE.out, SHOWINF_VALIDATE.out ) \
+            | map { it[2] } \
             | collect \
-            | map { tuple(it, params.input) }
+            | map { tuple(it, params.input) } \
             | CSV_OUTPUT
             | SYNAPSE_STORE
 
