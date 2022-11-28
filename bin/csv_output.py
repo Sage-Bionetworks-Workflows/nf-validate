@@ -68,14 +68,8 @@ def update_output_dict(json_list: list, output_dict: dict) -> dict:
                 output_dict[syn_id]["failed_tests"].append(test_name)
 
     # set is_valid
-    for k in output_dict:
-        if set(output_dict[k]["passed_tests"]).issuperset(
-            set(output_dict[k]["required_tests"])
-        ):
-            is_valid = True
-        else:
-            is_valid = False
-        output_dict[k]["is_valid"] = is_valid
+    for k, v in output_dict.items():
+        v["is_valid"] = set(v["passed_tests"]) >= set(v["required_tests"])
 
     return output_dict
 
