@@ -199,8 +199,7 @@ workflow {
             | collect \
             | map { tuple(it, params.input) } \
             | CSV_OUTPUT
-            | view
-            // | SYNAPSE_STORE
+            | SYNAPSE_STORE
 
 }
 
