@@ -2,13 +2,14 @@ import json
 
 
 def package_validation_dict(
-    syn_id: str,
-    entity_type: str,
-    version_number: int,
-    md5_input: str,
-    validation_status: str,
-    test_name: str,
-) -> dict:
+    # Type hints removed for Python 2 compatibility
+    syn_id,  # : str
+    entity_type,  # : str
+    version_number,  # : int
+    md5_input,  # : str
+    validation_status,  # : str
+    test_name,  # : str
+): # -> dict
     """
     Packages data into JSON-friendly dictionary for creation of validation output file
 
@@ -33,7 +34,12 @@ def package_validation_dict(
     return data
 
 
-def json_dump(syn_id: str, test_name: str, data: dict):
+def json_dump(
+    # Type hints removed for Python 2 compatibility
+    syn_id,  # : str
+    test_name,  # : str
+    data,  # : dict
+):
     """
     Dumps dictionary into JSON output file
 
@@ -42,5 +48,6 @@ def json_dump(syn_id: str, test_name: str, data: dict):
         test_name (str): Validation test that was performed
         data (dict): Formatted dictionary to be dumped into output JSON file
     """
-    with open(f"{syn_id}-{test_name}.json", "w") as outfile:
+    # f-string removed for Python 2 compatibility
+    with open("{}-{}.json".format(syn_id, test_name), "w") as outfile:
         json.dump(data, outfile)

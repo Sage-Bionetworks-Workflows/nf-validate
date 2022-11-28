@@ -1,8 +1,9 @@
 {
     "input": {
-        "synapse_id": "syn12345678",
-        "type": "file",
-        "version_number": 3
+        "synapse_id": "syn26644421",
+        "type": "FileEntity",
+        "version_number": 1,
+        "md5_checksum": "313257a6822ff5b52e7e35a626b6c33f"
     },
     "test": {
         "name": "file_entity_test",
