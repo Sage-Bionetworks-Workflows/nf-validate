@@ -102,7 +102,9 @@ def export_validation_results_csv(output_dict: dict):
 
     # export to CSV
     keys = output_list[0].keys()
-    with open("validation_results.csv", "w", newline="") as output_file:
+    with open(
+        "validation_results.csv", "w", newline=""
+    ) as output_file:  # newline = "" allows newlines inside quoted fields to be interpreted correctly and prevents an extra \r from being added if the platform uses \r\n endings, it is always safe to use this argument
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(output_list)
